@@ -1,0 +1,43 @@
+local APIKEY = getgenv().Config["APIKEY"]
+local NAME = getgenv().Config["NAME"]
+
+local Nick = game.Players.LocalPlayer.Name
+local requestFunc = syn and syn.request or http_request or request
+
+while true do
+    task.wait(60)
+    local clientData = require(game.ReplicatedStorage.ClientModules.Core.ClientData)
+    local playerData = clientData.get_data()[tostring(game.Players.LocalPlayer)]
+
+    -- Potion
+    local potion = 0
+    for _, item in pairs(playerData.inventory.food or {}) do
+        if item.kind == "pet_age_potion" then
+            potion += 1
+        end
+    end
+
+    -- Summer_Coin
+    local text = game:GetService("Players").LocalPlayer.PlayerGui.AltCurrencyIndicatorApp.CurrencyIndicator.Container.Amount.Text
+    if text:find(",") then
+        text = text:gsub(",", "")
+    end
+
+    local summer_coin = tonumber(text)
+
+    -- Bucks
+    local text = game:GetService("Players").LocalPlayer.PlayerGui.BucksIndicatorApp.CurrencyIndicator.Container.Amount.Text
+    if text:find(",") then
+        text = text:gsub(",", "")
+    end
+
+    local bucks = tonumber(text)
+
+    -- Send request
+    local url = "http://89.23.96.103:5000//update?apikey=" .. APIKEY .. "&nick=" .. Nick .. "&bucks=" .. bucks .. "&potion=" .. potion .. "&event_currency=" .. summer_coin .. "&VPS=" .. NAME
+
+    local res = requestFunc({
+        Url = url,
+        Method = "GET"
+    })
+end
