@@ -1,0 +1,83 @@
+local clientData = require(game.ReplicatedStorage.ClientModules.Core.ClientData)
+local playerData = clientData.get_data()[tostring(game.Players.LocalPlayer)]
+
+local jewel = 0
+
+for _, pet in pairs(playerData.inventory.toys or {}) do
+    if pet.kind == "summerfest_2025_priceless_jewel" then
+        jewel += 1
+    end
+end
+
+local NeedPetsPrincess = math.floor(jewel / 5)
+
+local args = {
+	"pets",
+	"summer_2025_emperor_shrimp",
+	{
+		buy_count = NeedPetsPrincess
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+
+-- Функция для получения до 18 jewel
+function GetFilteredJewel()
+    local playerData = clientData.get_data()[tostring(game.Players.LocalPlayer)]
+    local filteredPets = {}
+
+    for _, pet in pairs(playerData.inventory.toys or {}) do
+        if #filteredPets >= 18 then break end
+        if pet.kind == "summerfest_2025_priceless_jewel" then
+            table.insert(filteredPets, pet)
+        end
+    end
+
+    return filteredPets
+end
+
+-- Функция для получения 1 shrimp
+function GetFilteredPet(petName)
+    local playerData = clientData.get_data()[tostring(game.Players.LocalPlayer)]
+    for _, pet in pairs(playerData.inventory.pets or {}) do
+        if pet.kind == petName then
+            return pet
+        end
+    end
+    return nil
+end
+
+while true do
+    local pets = GetFilteredJewel()
+    local shrimp = GetFilteredPet("summer_2025_emperor_shrimp")
+
+    -- Проверка наличия
+    if #pets < 5 or not shrimp then
+        warn("Недостаточно ресурсов! Jewel: "..#pets..", Shrimp: "..tostring(shrimp and "Есть" or "Нет"))
+        break
+    end
+
+    print("Shrimp:", shrimp.kind, shrimp.unique)
+
+    -- Формируем таблицу jewels
+    local jewels = {
+        r_1 = shrimp.unique -- shrimp остаётся r_1
+    }
+    for i = 1, 5 do
+        jewels["r_"..(i+1)] = pets[i].unique
+        print("r_"..(i+1).." = "..pets[i].unique)
+    end
+
+    -- Отправляем запрос
+    local args = {
+        "f-41",
+        "UseBlock",
+        jewels,
+        game:GetService("Players").LocalPlayer.Character
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("HousingAPI/ActivateInteriorFurniture"):InvokeServer(unpack(args))
+
+    -- Убираем небольшую задержку, чтобы не спамить слишком быстро
+    task.wait(1.5)
+end
+
+print("Цикл завершён: ресурсов больше нет.")
