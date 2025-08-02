@@ -1,0 +1,51 @@
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+local function FireSig(button)
+	if not button then return end
+	pcall(function()
+		for _, connection in ipairs(getconnections(button.MouseButton1Down)) do
+			connection:Fire()
+		end
+		task.wait(0.2)
+		for _, connection in ipairs(getconnections(button.MouseButton1Up)) do
+			connection:Fire()
+		end
+		task.wait(0.2)
+		for _, connection in ipairs(getconnections(button.MouseButton1Click)) do
+			connection:Fire()
+		end
+	end)
+end
+
+-- Ждём загрузки кнопки
+local function WaitForPlayButton()
+	local maxWait = 30
+	local waited = 0
+	while waited < maxWait do
+		local newsApp = PlayerGui:FindFirstChild("NewsApp")
+		if newsApp and newsApp:FindFirstChild("EnclosingFrame") and newsApp.EnclosingFrame:FindFirstChild("MainFrame") then
+			local playButton = newsApp.EnclosingFrame.MainFrame:FindFirstChild("Buttons")
+				and newsApp.EnclosingFrame.MainFrame.Buttons:FindFirstChild("PlayButton")
+			if playButton then
+				return playButton
+			end
+		end
+		waited += 0.5
+		task.wait(0.5)
+	end
+	return nil
+end
+
+local playButton = WaitForPlayButton()
+if playButton then
+	FireSig(playButton)
+	print("✅ Нажали на PlayButton")
+else
+	warn("❌ Кнопка PlayButton не найдена.")
+end
+
+task.wait(10)
+
+FireSig(game:GetService("Players").LocalPlayer.PlayerGui.DialogApp.Dialog.ExitButton)
